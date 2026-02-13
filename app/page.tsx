@@ -94,7 +94,7 @@ export default function Home() {
       <div className="max-w-7xl mx-auto mb-8">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-4xl md:text-6xl font-bold text-neon-cyan neon-glow flicker font-retro">
-            CYBER MAIL
+            EVIL
           </h1>
           <div className="flex items-center gap-4">
             <button 
