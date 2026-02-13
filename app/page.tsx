@@ -1,102 +1,80 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Email {
   id: number;
   from: string;
+  to?: string;
   subject: string;
-  preview: string;
+  body: string;
   date: string;
   read: boolean;
   priority: 'normal' | 'high' | 'urgent';
+  attachments?: string[];
 }
 
-const mockEmails: Email[] = [
-  {
-    id: 1,
-    from: 'admin@cyberspace.net',
-    subject: 'SISTEMA ACTUALIZADO - V3.0',
-    preview: 'El sistema ha sido actualizado exitosamente. Nuevas características disponibles...',
-    date: '2084.03.15',
-    read: false,
-    priority: 'high'
-  },
-  {
-    id: 2,
-    from: 'neural@matrix.io',
-    subject: 'Conexión neural establecida',
-    preview: 'Tu interfaz neural está lista para ser utilizada. Accede al puerto...',
-    date: '2084.03.14',
-    read: true,
-    priority: 'normal'
-  },
-  {
-    id: 3,
-    from: 'security@firewall.sys',
-    subject: 'ALERTA: Intento de acceso detectado',
-    preview: 'Se detectó un intento de acceso no autorizado en tu terminal...',
-    date: '2084.03.14',
-    read: false,
-    priority: 'urgent'
-  },
-  {
-    id: 4,
-    from: 'data@cloud.node',
-    subject: 'Backup completado',
-    preview: 'El respaldo de datos se completó correctamente. 2.5TB sincronizados...',
-    date: '2084.03.13',
-    read: true,
-    priority: 'normal'
-  },
-  {
-    id: 5,
-    from: 'quantum@processor.dev',
-    subject: 'Procesamiento cuántico disponible',
-    preview: 'Tu cuenta ahora tiene acceso a procesadores cuánticos de nueva generación...',
-    date: '2084.03.12',
-    read: true,
-    priority: 'normal'
-  },
-  {
-    id: 6,
-    from: 'ai@assistant.bot',
-    subject: 'Informe semanal de actividad',
-    preview: 'Resumen de tu actividad: 247 comandos ejecutados, 98.7% de éxito...',
-    date: '2084.03.11',
-    read: false,
-    priority: 'normal'
-  },
-  {
-    id: 7,
-    from: 'network@sync.hub',
-    subject: 'Sincronización completada',
-    preview: 'Todos tus dispositivos están sincronizados y conectados a la red...',
-    date: '2084.03.10',
-    read: true,
-    priority: 'normal'
-  },
-  {
-    id: 8,
-    from: 'crypto@wallet.chain',
-    subject: 'Transacción confirmada',
-    preview: 'Tu transacción de 500 CyberCoins ha sido confirmada en la blockchain...',
-    date: '2084.03.09',
-    read: true,
-    priority: 'high'
-  }
-];
-
 export default function Home() {
-  const [emails, setEmails] = useState<Email[]>(mockEmails);
+  const [emails, setEmails] = useState<Email[]>([]);
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleEmailClick = (email: Email) => {
+  // Cargar emails del MCP al montar el componente
+  useEffect(() => {
+    fetchEmails();
+  }, []);
+
+  const fetchEmails = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/emails');
+      const data = await response.json();
+      
+      if (data.success) {
+        setEmails(data.emails);
+        setError(null);
+      } else {
+        setError('Error al cargar emails');
+      }
+    } catch (err) {
+      console.error('Error fetching emails:', err);
+      setError('No se pudo conectar con el servidor');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}.${month}.${day}`;
+  };
+
+  const getPreview = (body: string, length: number = 70) => {
+    return body.length > length ? body.substring(0, length) + '...' : body;
+  };
+
+  const handleEmailClick = async (email: Email) => {
     setSelectedEmail(email);
     if (!email.read) {
+      // Actualizar localmente
       setEmails(emails.map(e => 
         e.id === email.id ? { ...e, read: true } : e
       ));
+      
+      // Actualizar en el servidor/MCP
+      try {
+        await fetch('/api/emails', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ emailId: email.id })
+        });
+      } catch (err) {
+        console.error('Error marking email as read:', err);
+      }
     }
   };
 
@@ -118,13 +96,27 @@ export default function Home() {
           <h1 className="text-4xl md:text-6xl font-bold text-neon-cyan neon-glow flicker font-retro">
             CYBER MAIL
           </h1>
-          <div className="text-neon-pink text-sm md:text-lg font-retro">
-            &gt; {unreadCount} NUEVOS
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={fetchEmails}
+              className="px-4 py-2 border border-neon-cyan text-neon-cyan text-xs font-retro hover:bg-neon-cyan hover:text-retro-dark transition-all"
+              disabled={loading}
+            >
+              {loading ? 'CARGANDO...' : 'ACTUALIZAR'}
+            </button>
+            <div className="text-neon-pink text-sm md:text-lg font-retro">
+              &gt; {unreadCount} NUEVOS
+            </div>
           </div>
         </div>
         <p className="text-center text-neon-purple text-sm md:text-xl neon-glow font-retro">
-          &gt; SISTEMA DE MENSAJES :: TERMINAL 7 &lt;
+          &gt; SISTEMA DE MENSAJES :: TERMINAL 7 :: MCP CONECTADO &lt;
         </p>
+        {error && (
+          <div className="mt-4 p-3 border-2 border-red-500 bg-red-500 bg-opacity-10 text-red-500 text-center font-retro text-sm">
+            ERROR: {error}
+          </div>
+        )}
       </div>
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -138,7 +130,15 @@ export default function Home() {
           </div>
 
           <div className="space-y-2 max-h-[600px] overflow-y-auto custom-scrollbar">
-            {emails.map((email) => (
+            {loading ? (
+              <div className="text-center text-neon-cyan font-retro py-8">
+                <div className="animate-pulse">CARGANDO MENSAJES...</div>
+              </div>
+            ) : emails.length === 0 ? (
+              <div className="text-center text-neon-purple font-retro py-8">
+                NO HAY MENSAJES
+              </div>
+            ) : emails.map((email) => (
               <div
                 key={email.id}
                 onClick={() => handleEmailClick(email)}
@@ -170,8 +170,11 @@ export default function Home() {
                   }`}>
                     {email.subject}
                   </h3>
+                  <p className="text-neon-cyan text-xs opacity-50 mb-2 truncate">
+                    {getPreview(email.body, 50)}
+                  </p>
                   <div className="text-neon-cyan text-xs font-retro opacity-70">
-                    {email.date}
+                    {formatDate(email.date)}
                   </div>
                 </div>
 
@@ -206,25 +209,34 @@ export default function Home() {
                     <div className="text-neon-purple">
                       DE: <span className="text-neon-cyan">{selectedEmail.from}</span>
                     </div>
+                    {selectedEmail.to && (
+                      <div className="text-neon-purple">
+                        PARA: <span className="text-neon-cyan">{selectedEmail.to}</span>
+                      </div>
+                    )}
                     <div className="text-neon-purple">
-                      FECHA: <span className="text-neon-pink">{selectedEmail.date}</span>
+                      FECHA: <span className="text-neon-pink">{formatDate(selectedEmail.date)}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Body */}
                 <div className="text-neon-cyan font-retro leading-relaxed">
-                  <p className="mb-4">&gt; {selectedEmail.preview}</p>
-                  <p className="mb-4 opacity-80">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-                    Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-                    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
-                  </p>
-                  <p className="opacity-80">
-                    Duis aute irure dolor in reprehenderit in voluptate velit esse 
-                    cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat 
-                    cupidatat non proident, sunt in culpa qui officia deserunt mollit anim.
-                  </p>
+                  <p className="mb-4 whitespace-pre-wrap">&gt; {selectedEmail.body}</p>
+                  
+                  {selectedEmail.attachments && selectedEmail.attachments.length > 0 && (
+                    <div className="mt-6 pt-4 border-t border-neon-purple">
+                      <div className="text-neon-pink text-sm mb-2">ARCHIVOS ADJUNTOS:</div>
+                      <div className="space-y-2">
+                        {selectedEmail.attachments.map((attachment, index) => (
+                          <div key={index} className="flex items-center gap-2 text-xs">
+                            <span className="text-neon-cyan">▶</span>
+                            <span className="text-neon-purple">{attachment}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Actions */}
