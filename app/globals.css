@@ -2,103 +2,186 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@300;400;600;700;800&display=swap');
+
 @layer base {
-  @font-face {
-    font-family: 'RetroComputer';
-    src: local('Courier New'), local('Courier');
-    font-weight: normal;
-  }
-  
   body {
-    background: #0a0e27;
-    font-family: 'Courier New', monospace;
+    background: linear-gradient(135deg, #0a0e27 0%, #1a1433 50%, #0f0620 100%);
+    font-family: 'Exo 2', 'Orbitron', sans-serif;
+    overflow-x: hidden;
   }
 }
 
 @layer utilities {
-  .neon-glow {
-    text-shadow: 
-      0 0 5px currentColor,
-      0 0 10px currentColor,
-      0 0 20px currentColor,
-      0 0 40px currentColor;
+  /* Anime specific styles */
+  .anime-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #667eea 100%);
+    background-size: 400% 400%;
+    animation: anime-gradient 15s ease infinite;
   }
-  
-  .neon-border {
-    box-shadow: 
-      0 0 5px currentColor,
-      0 0 10px currentColor,
-      inset 0 0 5px currentColor,
-      inset 0 0 10px currentColor;
+
+  @keyframes anime-gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
-  
-  .scan-lines {
+
+  .shimmer {
+    background: linear-gradient(90deg, 
+      #fff 0%, 
+      #ffd700 25%, 
+      #fff 50%, 
+      #ffd700 75%, 
+      #fff 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 3s linear infinite;
+  }
+
+  @keyframes shimmer {
+    to { background-position: 200% center; }
+  }
+
+  .float {
+    animation: float-anime 3s ease-in-out infinite;
+  }
+
+  @keyframes float-anime {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+  }
+
+  .anime-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .anime-card:hover {
+    transform: translateY(-5px) scale(1.02);
+  }
+
+  .anime-btn {
     position: relative;
     overflow: hidden;
+    transition: all 0.3s ease;
   }
-  
-  .scan-lines::before {
+
+  .anime-btn::before {
     content: '';
     position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+
+  .anime-btn:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+
+  .anime-btn:active {
+    transform: scale(0.95);
+  }
+
+  .badge-pulse {
+    animation: badge-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes badge-pulse {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(1.05);
+    }
+  }
+
+  .anime-scrollbar::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .anime-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+
+  .anime-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .anime-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #f093fb 0%, #4facfe 100%);
+  }
+
+  .anime-glow {
+    text-shadow: 
+      0 0 10px rgba(255, 255, 255, 0.8),
+      0 0 20px rgba(102, 126, 234, 0.6),
+      0 0 30px rgba(118, 75, 162, 0.4);
+  }
+
+  /* Star background */
+  .stars {
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: repeating-linear-gradient(
-      0deg,
-      rgba(0, 0, 0, 0.15),
-      rgba(0, 0, 0, 0.15) 1px,
-      transparent 1px,
-      transparent 2px
-    );
     pointer-events: none;
-    z-index: 10;
+    z-index: 0;
   }
-  
-  .grid-retro {
-    background-image: 
-      linear-gradient(rgba(255, 0, 255, 0.1) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
-    background-size: 50px 50px;
-  }
-  
-  .flicker {
-    animation: flicker 0.15s infinite alternate;
-  }
-  
-  @keyframes flicker {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.95; }
-  }
-  
-  .retro-gradient {
-    background: linear-gradient(135deg, #ff00ff, #00ffff, #ff00ff);
-    background-size: 200% 200%;
-    animation: gradient-shift 3s ease infinite;
-  }
-  
-  @keyframes gradient-shift {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-  }
-  
-  .vhs-effect {
-    position: relative;
-  }
-  
-  .vhs-effect::after {
+
+  .stars::before,
+  .stars::after {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      to bottom,
-      transparent 50%,
-      rgba(0, 255, 255, 0.05) 50%
-    );
-    background-size: 100% 4px;
-    pointer-events: none;
+    width: 2px;
+    height: 2px;
+    background: white;
+    box-shadow: 
+      100px 200px white,
+      200px 100px white,
+      300px 300px white,
+      400px 150px white,
+      500px 250px white,
+      600px 350px white,
+      700px 100px white,
+      800px 400px white,
+      900px 200px white,
+      1000px 300px white,
+      150px 400px white,
+      250px 500px white,
+      350px 150px white,
+      450px 350px white,
+      550px 450px white,
+      650px 200px white,
+      750px 500px white,
+      850px 150px white,
+      950px 350px white,
+      1100px 250px white,
+      1200px 400px white,
+      1300px 150px white,
+      1400px 350px white,
+      1500px 250px white;
+    animation: twinkle 3s infinite;
+  }
+
+  .stars::after {
+    animation-delay: 1.5s;
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
   }
 }
